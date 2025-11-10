@@ -2,25 +2,10 @@
 
 use std::iter::Peekable;
 
-use crate::lexer::{Token, Loc, Lexer, TokenT};
-
-#[derive(Debug)]
-enum Expression {
-    IDENT(Token),
-}
-
-#[derive(Debug)]
-enum Projection {
-    STAR(Loc), 
-    EXPRESSION(Expression),
-}
-
-#[derive(Debug)]
-struct SelectStmt {
-    projs:Vec<Projection>,
-    table: Expression,
-    span: Loc,
-}
+use crate::token::{Token, TokenT};
+use crate::loc::Loc;
+use crate::lexer::Lexer;
+use crate::ast::*;
 
 #[derive(Debug)]
 enum ParseErrorT {
@@ -203,13 +188,13 @@ impl<'a> Parser<'a> {
         Ok(Expression::IDENT(table))
     }
 
-    fn parse_select(&mut self) -> Result<SelectStmt, ParseError> {
+    fn parse_select(&mut self) -> Result<SelectClause, ParseError> {
         let span = self.span;
         let _ = self.require_token(TokenT::SELECT)?;
         let projections = self.parse_projections()?;
         let from = self.parse_from()?;
 
-        Ok(SelectStmt {
+        Ok(SelectClause {
             projs: projections,
             table: from,
             span
