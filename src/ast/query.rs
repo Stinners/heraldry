@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::sync::Arc;
+
 use crate::ast::Expression;
 use crate::loc::Loc;
 
@@ -18,22 +20,25 @@ pub struct Join {
 }
 
 #[derive(Debug)]
-pub enum Projection {
+pub enum ProjectionBind {
     STAR(Loc), 
     EXPRESSION(Expression),
 }
 
+pub type Projection = (ProjectionBind, Option<Arc<str>>);
+
 #[derive(Debug)]
 pub struct FromClause {
-    table: Expression,
-    joins: Vec<Join>,
+    pub table: Expression,
+    pub joins: Vec<Join>,
 }
 
 #[derive(Debug)]
 pub struct SelectStmt {
-    proj: Vec<Projection>,
-    from: Option<FromClause>,
-    _where: Option<Expression>,
-    having: Option<Expression>,
-    qualify: Option<Expression>
-}
+    pub proj: Vec<Projection>,
+    pub from: Option<FromClause>,
+    pub _where: Option<Expression>,
+    pub having: Option<Expression>,
+    pub qualify: Option<Expression>,
+    pub span: Loc,
+}   

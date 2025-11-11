@@ -141,15 +141,26 @@ impl<'a> Parser<'a> {
     }
 
     // =============== Parsing Functions =============== */
+    
+    // We don't need to evaluate expressions, so don't care about getting 
+    // precidence correct. It might actually be better to just produce 
+    // a list of the releant names rather without trying to preserve any of the 
+    // expression structure
+    fn parse_expression(&mut self) -> Result<Expression, ParseError> {
+        let token = self.require_token(TokenT::IDENTIFIER)?;
+        Ok(Expression::IDENT(token))
+    }
 
     fn parse_projection(&mut self) -> Result<Projection, ParseError> {
         let token = self.require_one_of(&[TokenT::STAR, TokenT::IDENTIFIER])?;
 
-        Ok(match token.kind {
-            TokenT::STAR => Projection::STAR(token.span),
-            TokenT::IDENTIFIER => Projection::EXPRESSION(Expression::IDENT(token)),
+        let bind = match token.kind {
+            TokenT::STAR => ProjectionBind::STAR(token.span),
+            TokenT::IDENTIFIER => ProjectionBind::EXPRESSION(Expression::IDENT(token)),
             _ => unreachable!("Unexpected token type in parse_projection")
-        })
+        };
+
+        Ok((bind, None))
     }
 
     fn parse_projections(&mut self) -> Result<Vec<Projection>, ParseError> {
@@ -182,24 +193,26 @@ impl<'a> Parser<'a> {
         Ok(projections)
     }
 
-    fn parse_from(&mut self) -> Result<Expression, ParseError> {
+    fn parse_from_clause(&mut self) -> Result<FromClause, ParseError> {
         let _ = self.require_token(TokenT::FROM)?;
-        let table = self.require_token(TokenT::IDENTIFIER)?;
-        Ok(Expression::IDENT(table))
+        let table = self.parse_expression()?;
+        Ok(FromClause{table, joins: vec!()})
     }
 
-    fn parse_select(&mut self) -> Result<SelectClause, ParseError> {
+    fn parse_select(&mut self) -> Result<SelectStmt, ParseError> {
         let span = self.span;
         let _ = self.require_token(TokenT::SELECT)?;
         let projections = self.parse_projections()?;
-        let from = self.parse_from()?;
+        let from = self.parse_from_clause();
 
-        Ok(SelectClause {
-            projs: projections,
-            table: from,
-            span
+        Ok(SelectStmt{
+            proj: projections,
+            from: from.ok(),
+            _where: None,
+            having: None,
+            qualify: None,
+            span: span,
         })
-
     }
 }
 
