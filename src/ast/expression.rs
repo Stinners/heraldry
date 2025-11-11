@@ -25,3 +25,22 @@ impl Expression {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ast::tests::SExp;
+    use Expression::*;
+
+    impl SExp for Expression {
+        fn s_exp(&self) -> String {
+            match self {
+                IDENT(token) => token.to_string(),
+                UNIARY(op, expression) => format!("({} {})", op.to_string(), expression.s_exp()),
+                BINARY(left, op, right) => format!("({} {} {})", op.to_string(), left.s_exp(), right.s_exp()),
+                COMPOUND_IDENT(parts, _) => parts.iter().map(|t| t.to_string())
+                                                 .fold(String::new(), |a, b| a + "." + &b),
+            }
+        }
+    }
+}

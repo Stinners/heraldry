@@ -42,3 +42,34 @@ pub struct SelectStmt {
     pub qualify: Option<Expression>,
     pub span: Loc,
 }   
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ast::tests::SExp;
+
+    impl SExp for JoinType {
+        fn s_exp(&self) -> String { format!("{:?}", self) }
+    }
+
+
+    impl SExp for ProjectionBind {
+        fn s_exp(&self) -> String {
+            match self {
+                ProjectionBind::STAR(_) => "*".to_string(),
+                ProjectionBind::EXPRESSION(exp) => exp.s_exp(),
+            }
+        }
+    }
+
+    impl SExp for SelectStmt {
+        fn s_exp(&self) -> String {
+            let mut result = format!("(select");
+            
+            
+            result = format!("{})", result);
+            result 
+        }
+    }
+}

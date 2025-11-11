@@ -43,6 +43,10 @@ impl Token {
         &self.text[self.span.start..self.span.end]
     }
 
+    pub fn to_string(&self) -> String {
+        self.get_str().to_string() 
+    }
+
     pub fn get_string_content<'a>(&'a self) -> &'a str {
         assert!(self.kind == TokenT::STRING);
 
